@@ -22,6 +22,7 @@ app.use('/api/users',    require('./routes/users'));
 app.use('/api/skills',   require('./routes/skills'));
 app.use('/api/matches',  require('./routes/matches'));
 app.use('/api/sessions', require('./routes/sessions'));
+app.use('/api/test', require('./routes/test'));
 
 // ─── HEALTH CHECK ────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
