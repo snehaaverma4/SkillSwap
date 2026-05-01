@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — SkillSwap</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .profile-page { padding-top: 70px; min-height: 100vh; }
+
+    .profile-hero {
+      background: var(--bg2);
+      border-bottom: 0.5px solid var(--border);
+      padding: 3rem 2rem 2rem;
+    }
+
+    .profile-hero-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .profile-avatar-big {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(29,158,117,0.15);
+      border: 2px solid rgba(29,158,117,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--green-mid);
+      flex-shrink: 0;
+    }
+
+    .profile-name-block h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .profile-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .profile-stats-row {
+      display: flex;
+      gap: 1.5rem;
+      text-align: center;
+    }
+
+    .pstat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    .pstat-label {
+      font-size: 11px;
+      color: var(--text2);
+      margin-top: 2px;
+    }
+
+    .profile-body {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .section-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 1rem;
+    }
+
+    .skill-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .skill-row:last-child { border-bottom: none; }
+
+    .skill-name { font-size: 14px; font-weight: 500; }
+
+    /* Test card */
+    .test-card {
+      background: rgba(239,159,39,0.06);
+      border: 0.5px solid rgba(239,159,39,0.2);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .test-card-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .test-card p { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+
+    .btn-take-test {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 18px;
+      background: rgba(239,159,39,0.12);
+      color: #EF9F27;
+      border: 0.5px solid rgba(239,159,39,0.3);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .btn-take-test:hover { background: rgba(239,159,39,0.2); }
+
+    /* Sessions */
+    .session-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .session-item:last-child { border-bottom: none; }
+
+    .session-info { flex: 1; }
+    .session-title { font-size: 13px; font-weight: 500; }
+    .session-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+    /* Matches section */
+    .match-preview {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .match-preview:last-child { border-bottom: none; }
+    .match-preview:hover { opacity: 0.85; }
+
+    .match-preview-info { flex: 1; }
+    .match-preview-name { font-size: 13px; font-weight: 500; }
+    .match-preview-skills { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+    /* Points history */
+    .pts-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .pts-item:last-child { border-bottom: none; }
+
+    .pts-change {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .pts-gain { color: var(--green); }
+    .pts-spend { color: #e8855a; }
+
+    @media (max-width: 700px) {
+      .profile-hero-inner { grid-template-columns: auto 1fr; }
+      .profile-stats-row { display: none; }
+      .profile-body { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Skill<span>Swap</span></a>
+    <ul class="nav-links">
+      <li><a href="browse.html">Browse Skills</a></li>
+      <li><a href="match.html">My Matches</a></li>
+    </ul>
+    <div class="nav-btns">
+      <a href="#" class="btn" id="navName">Profile</a>
+    </div>
+  </nav>
+
+  <div class="profile-page">
+
+    <!-- HERO BANNER -->
+    <div class="profile-hero">
+      <div class="profile-hero-inner">
+        <div class="profile-avatar-big" id="profileInitials">SN</div>
+
+        <div class="profile-name-block">
+          <h1 id="profileName">Sneha Nair</h1>
+          <div class="profile-meta">
+            <span class="badge badge-verified">✓ Verified</span>
+            <span class="badge badge-points" id="profilePoints">⬡ 60 pts</span>
+            <span style="font-size:12px;color:var(--text2);" id="profileRole">Student</span>
+          </div>
+        </div>
+
+        <div class="profile-stats-row">
+          <div>
+            <div class="pstat-num" id="statTeach">0</div>
+            <div class="pstat-label">Teaching</div>
+          </div>
+          <div>
+            <div class="pstat-num" id="statLearn">0</div>
+            <div class="pstat-label">Learning</div>
+          </div>
+          <div>
+            <div class="pstat-num">0</div>
+            <div class="pstat-label">Sessions</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="profile-body">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- Teach skills -->
+        <div class="section-card">
+          <div class="section-card-title">Skills I teach</div>
+          <div id="teachSkillsList">
+            <div style="font-size:13px;color:var(--text3);">No skills added yet. <a href="register.html" style="color:var(--green);text-decoration:none;">Add skills</a></div>
+          </div>
+        </div>
+
+        <!-- Learn skills -->
+        <div class="section-card">
+          <div class="section-card-title">Skills I want to learn</div>
+          <div id="learnSkillsList">
+            <div style="font-size:13px;color:var(--text3);">Nothing listed yet.</div>
+          </div>
+        </div>
+
+        <!-- Test pending -->
+        <div class="test-card" id="testPendingCard">
+          <div class="test-card-title">🧪 Skill test pending</div>
+          <p>You have unverified skills. Complete the test to unlock your verified badge and start teaching.</p>
+          <button class="btn-take-test" onclick="alert('Test feature coming soon! Demo purposes only.')">Take test now →</button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div>
+
+        <!-- Potential matches -->
+        <div class="section-card">
+          <div class="section-card-title">Potential matches</div>
+          <div id="matchesList">
+            <div class="match-preview" onclick="window.location.href='match.html'">
+              <div class="avatar av-purple">RK</div>
+              <div class="match-preview-info">
+                <div class="match-preview-name">Roy K.</div>
+                <div class="match-preview-skills">Teaches Java, DSA · Wants Python</div>
+              </div>
+              <span class="badge badge-teach">Match!</span>
+            </div>
+            <div class="match-preview" onclick="window.location.href='match.html'">
+              <div class="avatar av-amber">AM</div>
+              <div class="match-preview-info">
+                <div class="match-preview-name">Arjun M.</div>
+                <div class="match-preview-skills">Teaches React · Wants ML basics</div>
+              </div>
+              <span class="badge badge-teach">Match!</span>
+            </div>
+            <div class="match-preview" onclick="window.location.href='match.html'">
+              <div class="avatar av-coral">PR</div>
+              <div class="match-preview-info">
+                <div class="match-preview-name">Priya R.</div>
+                <div class="match-preview-skills">Teaches SQL · Wants Python</div>
+              </div>
+              <span class="badge badge-teach">Match!</span>
+            </div>
+          </div>
+          <div style="margin-top:1rem;">
+            <a href="match.html" class="btn btn-outline" style="font-size:12px;padding:7px 16px;">View all matches →</a>
+          </div>
+        </div>
+
+        <!-- Points history -->
+        <div class="section-card">
+          <div class="section-card-title">Points history</div>
+          <div>
+            <div class="pts-item">
+              <div>
+                <div style="font-size:13px;font-weight:500;">Signup bonus</div>
+                <div style="font-size:11px;color:var(--text2);">Welcome to SkillSwap</div>
+              </div>
+              <div class="pts-change pts-gain">+50</div>
+            </div>
+            <div class="pts-item">
+              <div>
+                <div style="font-size:13px;font-weight:500;">First profile complete</div>
+                <div style="font-size:11px;color:var(--text2);">Fill in all profile info</div>
+              </div>
+              <div class="pts-change pts-gain">+10</div>
+            </div>
+          </div>
+          <div style="margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;color:var(--text2);">Total balance</span>
+            <span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--green);" id="totalPoints">60 pts</span>
+          </div>
+        </div>
+
+        <!-- Recent sessions -->
+        <div class="section-card">
+          <div class="section-card-title">Recent sessions</div>
+          <div style="font-size:13px;color:var(--text3);padding:8px 0;">No sessions yet. Start your first swap!</div>
+          <div style="margin-top:1rem;">
+            <a href="browse.html" class="btn btn-primary" style="font-size:12px;padding:7px 16px;">Find a teacher →</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function getInitials(name) {
+      return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    }
+
+    const user = JSON.parse(localStorage.getItem('ss_user') || '{"name":"Sneha Nair","teach":["Python","ML basics"],"learn":["Java","DSA"],"points":50,"role":"Student"}');
+
+    document.getElementById('profileName').textContent = user.name;
+    document.getElementById('profileInitials').textContent = getInitials(user.name);
+    document.getElementById('navName').textContent = user.name.split(' ')[0];
+    document.getElementById('profileRole').textContent = user.role || 'Student';
+    document.getElementById('profilePoints').textContent = '⬡ ' + (user.points || 50) + ' pts';
+    document.getElementById('totalPoints').textContent = ((user.points || 50) + 10) + ' pts';
+
+    const teach = user.teach || [];
+    const learn = user.learn || [];
+
+    document.getElementById('statTeach').textContent = teach.length;
+    document.getElementById('statLearn').textContent = learn.length;
+
+    const teachList = document.getElementById('teachSkillsList');
+    if (teach.length > 0) {
+      teachList.innerHTML = teach.map(s => `
+        <div class="skill-row">
+          <div class="skill-name">${s}</div>
+          <span class="badge badge-learn">Test pending</span>
+        </div>
+      `).join('');
+    }
+
+    const learnList = document.getElementById('learnSkillsList');
+    if (learn.length > 0) {
+      learnList.innerHTML = learn.map(s => `
+        <div class="skill-row">
+          <div class="skill-name">${s}</div>
+          <span class="badge badge-learn">Searching...</span>
+        </div>
+      `).join('');
+    }
+
+    if (teach.length === 0) {
+      document.getElementById('testPendingCard').style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>

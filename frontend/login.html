@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — SkillSwap</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 90px 1.5rem 3rem;
+    }
+
+    .login-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      max-width: 860px;
+      width: 100%;
+      align-items: center;
+    }
+
+    .login-left h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .login-left p {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .user-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .user-preview-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+    }
+
+    .user-preview-name { font-size: 13px; font-weight: 500; }
+    .user-preview-skill { font-size: 11px; color: var(--text2); }
+
+    .login-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .login-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .login-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-login:hover { background: var(--green-dark); }
+
+    .forgot { text-align: right; font-size: 12px; }
+    .forgot a { color: var(--text3); text-decoration: none; }
+    .forgot a:hover { color: var(--green); }
+
+    .register-link {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text2);
+      margin-top: 1.25rem;
+    }
+
+    .register-link a { color: var(--green); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .login-wrap { grid-template-columns: 1fr; }
+      .login-left { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Skill<span>Swap</span></a>
+    <ul class="nav-links"></ul>
+    <div class="nav-btns">
+      <a href="register.html" class="btn btn-primary">Get started</a>
+    </div>
+  </nav>
+
+  <div class="login-page">
+    <div class="login-wrap">
+
+      <!-- LEFT PANEL
+      <div class="login-left fade-up">
+        <h2>Welcome<br/><span style="color:var(--green);">back.</span></h2>
+        <p>Thousands of skill exchanges are waiting for you. Log in and continue learning — or teaching.</p>
+
+        <div class="user-preview">
+          <div class="user-preview-row">
+            <div class="avatar av-green">SN</div>
+            <div>
+              <div class="user-preview-name">Sneha N.</div>
+              <div class="user-preview-skill">Teaches Python · Wants Java</div>
+            </div>
+            <span class="badge badge-verified" style="margin-left:auto;">✓ Verified</span>
+          </div>
+          <div class="user-preview-row">
+            <div class="avatar av-purple">RK</div>
+            <div>
+              <div class="user-preview-name">Rohan K.</div>
+              <div class="user-preview-skill">Teaches Java · Wants ML</div>
+            </div>
+            <span class="badge badge-verified" style="margin-left:auto;">✓ Verified</span>
+          </div>
+          <div class="user-preview-row">
+            <div class="avatar av-amber">AM</div>
+            <div>
+              <div class="user-preview-name">Arjun M.</div>
+              <div class="user-preview-skill">Teaches DSA · Wants Design</div>
+            </div>
+            <span class="badge badge-verified" style="margin-left:auto;">✓ Verified</span>
+          </div>
+        </div>
+      </div> -->
+
+      <!-- LOGIN CARD -->
+      <div class="login-card fade-up-1">
+        <div class="login-title">Log in</div>
+        <div class="login-sub">Enter your credentials to continue</div>
+
+        <div class="form-group">
+          <label>Email address</label>
+          <input type="email" placeholder="you@email.com" id="loginEmail" />
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" placeholder="Your password" id="loginPassword" />
+        </div>
+
+        <div class="forgot" style="margin-bottom: 1.25rem;">
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <button class="btn-login" onclick="doLogin()">Log in →</button>
+
+        <div id="loginError" style="display:none; margin-top:10px; font-size:12px; color:#e8855a; text-align:center;">
+          Please enter your email and password.
+        </div>
+
+        <div class="register-link">
+          New to SkillSwap? <a href="register.html">Create an account</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function doLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPassword').value;
+      if (!email || !pass) {
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
+      // Demo: just redirect to profile
+      window.location.href = 'profile.html';
+    }
+  </script>
+
+</body>
+</html>

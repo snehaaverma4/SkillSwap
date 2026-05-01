@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — SkillSwap</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .register-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 90px 1.5rem 3rem;
+      background: var(--bg);
+    }
+
+    .register-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 540px;
+    }
+
+    .reg-header { margin-bottom: 2rem; }
+
+    .reg-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .reg-sub { font-size: 14px; color: var(--text2); }
+
+    /* STEPPER */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 2rem;
+    }
+
+    .step-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.3s;
+      border: 1.5px solid var(--border);
+      color: var(--text3);
+      background: var(--bg3);
+      font-family: 'Syne', sans-serif;
+    }
+
+    .step-dot.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .step-dot.done {
+      background: rgba(29,158,117,0.15);
+      border-color: rgba(29,158,117,0.4);
+      color: var(--green);
+    }
+
+    .step-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+
+    .step-line.done { background: rgba(29,158,117,0.4); }
+
+    .step-label {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 5px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .steps-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+      margin-bottom: 2rem;
+    }
+
+    .steps-labels span {
+      font-size: 10px;
+      color: var(--text3);
+      text-align: center;
+      flex: 1;
+    }
+
+    .steps-labels span.active { color: var(--green); }
+
+    /* FORM STEPS */
+    .form-step { display: none; }
+    .form-step.active { display: block; }
+
+    /* SKILL PICKER */
+    .skill-picker-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text2);
+      margin-bottom: 10px;
+    }
+
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .skill-chip {
+      padding: 8px 10px;
+      background: var(--bg3);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .skill-chip:hover { border-color: rgba(29,158,117,0.3); color: var(--text); }
+
+    .skill-chip.selected {
+      background: rgba(29,158,117,0.1);
+      border-color: rgba(29,158,117,0.5);
+      color: var(--green);
+    }
+
+    .selected-display {
+      background: var(--bg3);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      min-height: 46px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .selected-tag {
+      background: rgba(29,158,117,0.12);
+      color: var(--green-mid);
+      border: 0.5px solid rgba(29,158,117,0.3);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .selected-tag .remove {
+      cursor: pointer;
+      opacity: 0.7;
+      font-size: 12px;
+    }
+
+    .selected-tag .remove:hover { opacity: 1; }
+
+    /* STEP 3 - test info */
+    .test-info {
+      background: var(--bg3);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .test-skill-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .test-skill-row:last-child { border-bottom: none; }
+
+    .test-status {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    .test-pending {
+      background: rgba(239,159,39,0.12);
+      color: #EF9F27;
+      border: 0.5px solid rgba(239,159,39,0.3);
+    }
+
+    .test-passed {
+      background: rgba(29,158,117,0.1);
+      color: var(--green);
+      border: 0.5px solid rgba(29,158,117,0.3);
+    }
+
+    /* NAV BTNS */
+    .form-nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.5rem;
+    }
+
+    .btn-next {
+      flex: 1;
+      padding: 12px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-next:hover { background: var(--green-dark); }
+
+    .btn-back {
+      padding: 12px 20px;
+      background: transparent;
+      color: var(--text2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-back:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    .divider-or {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 1.5rem 0;
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    .divider-or::before,
+    .divider-or::after {
+      content: '';
+      flex: 1;
+      height: 0.5px;
+      background: var(--border);
+    }
+
+    .login-link {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .login-link a { color: var(--green); text-decoration: none; }
+    .login-link a:hover { text-decoration: underline; }
+
+    /* Success state */
+    .success-view {
+      text-align: center;
+      padding: 1rem 0;
+      display: none;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: rgba(29,158,117,0.12);
+      border: 1.5px solid rgba(29,158,117,0.35);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Skill<span>Swap</span></a>
+    <ul class="nav-links"></ul>
+    <div class="nav-btns">
+      <a href="login.html" class="btn">Already have an account? Log in</a>
+    </div>
+  </nav>
+
+  <div class="register-page">
+    <div class="register-card fade-up">
+
+      <!-- FORM AREA -->
+      <div id="formArea">
+        <div class="reg-header">
+          <div class="reg-title">Create your account</div>
+          <div class="reg-sub">Join SkillSwap — teach what you know, learn what you don't.</div>
+        </div>
+
+        <!-- Stepper -->
+        <div class="stepper">
+          <div class="step-dot active" id="dot1">1</div>
+          <div class="step-line" id="line1"></div>
+          <div class="step-dot" id="dot2">2</div>
+          <div class="step-line" id="line2"></div>
+          <div class="step-dot" id="dot3">3</div>
+        </div>
+        <div class="steps-labels">
+          <span class="active" id="lbl1">Your info</span>
+          <span id="lbl2">Declare skills</span>
+          <span id="lbl3">Verification</span>
+        </div>
+
+        <!-- Step 1: Basic Info -->
+        <div class="form-step active" id="step1">
+          <div class="form-group">
+            <label>Full name</label>
+            <input type="text" placeholder="Sneha Nair" id="fullname" />
+          </div>
+          <div class="form-group">
+            <label>Email address</label>
+            <input type="email" placeholder="sneha@email.com" id="email" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" placeholder="Min. 8 characters" id="password" />
+          </div>
+          <div class="form-group">
+            <label>I am primarily a...</label>
+            <select id="role">
+              <option value="">Select your role</option>
+              <option>Student</option>
+              <option>Working professional</option>
+              <option>Freelancer</option>
+              <option>Hobbyist</option>
+            </select>
+          </div>
+          <div class="form-nav">
+            <button class="btn-next" onclick="goStep(2)">Continue →</button>
+          </div>
+          <div class="divider-or">or</div>
+          <div class="login-link">Already have an account? <a href="login.html">Log in</a></div>
+        </div>
+
+        <!-- Step 2: Skill Declaration -->
+        <div class="form-step" id="step2">
+          <div class="skill-picker-title">What can you teach? (select all that apply)</div>
+
+          <div class="skill-grid" id="teachGrid">
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">Python</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">Java</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">C / C++</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">JavaScript</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">SQL</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">DSA</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">Machine Learning</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">UI / UX Design</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">React</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">Data Analysis</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">Mathematics</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'teach')">English / Writing</div>
+          </div>
+
+          <div style="margin-bottom: 6px; font-size: 12px; color: var(--text3);">Selected skills to teach:</div>
+          <div class="selected-display" id="teachSelected">
+            <span style="font-size: 12px; color: var(--text3);">None selected yet</span>
+          </div>
+
+          <div class="skill-picker-title" style="margin-top: 1.2rem;">What do you want to learn?</div>
+
+          <div class="skill-grid" id="learnGrid">
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">Python</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">Java</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">C / C++</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">JavaScript</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">SQL</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">DSA</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">Machine Learning</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">UI / UX Design</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">React</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">Data Analysis</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">Mathematics</div>
+            <div class="skill-chip" onclick="toggleSkill(this,'learn')">English / Writing</div>
+          </div>
+
+          <div style="margin-bottom: 6px; font-size: 12px; color: var(--text3);">Skills I want to learn:</div>
+          <div class="selected-display" id="learnSelected">
+            <span style="font-size: 12px; color: var(--text3);">None selected yet</span>
+          </div>
+
+          <div class="form-nav">
+            <button class="btn-back" onclick="goStep(1)">← Back</button>
+            <button class="btn-next" onclick="goStep(3)">Continue →</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Verification info -->
+        <div class="form-step" id="step3">
+          <div style="font-size: 14px; color: var(--text2); margin-bottom: 1.2rem; line-height: 1.6;">
+            Almost done! To get your <strong style="color: var(--text);">verified teacher badge</strong>, you'll need to pass a short test for each skill you declared. These are available on your dashboard after signup.
+          </div>
+
+          <div class="test-info">
+            <div style="font-size: 12px; color: var(--text3); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.08em;">Your declared teaching skills</div>
+            <div id="testSkillsList">
+              <div style="font-size: 13px; color: var(--text3);">— No skills declared yet —</div>
+            </div>
+          </div>
+
+          <div style="background: rgba(29,158,117,0.06); border: 0.5px solid rgba(29,158,117,0.2); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; color: var(--text2); margin-bottom: 1.5rem;">
+            💡 Tests are 15 minutes each, AI-evaluated, and you can retake after 48 hours if you don't pass.
+          </div>
+
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="agreeTerms" style="width: auto; accent-color: var(--green);" />
+              <span style="font-size: 13px; color: var(--text2);">I agree to the SkillSwap terms and community guidelines</span>
+            </label>
+          </div>
+
+          <div class="form-nav">
+            <button class="btn-back" onclick="goStep(2)">← Back</button>
+            <button class="btn-next" onclick="submitForm()">Create account →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUCCESS STATE -->
+      <div class="success-view" id="successView">
+        <div class="success-icon">✓</div>
+        <h2 style="font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 8px;">You're in!</h2>
+        <p style="font-size: 14px; color: var(--text2); margin-bottom: 2rem; line-height: 1.6;">
+          Account created. Head to your profile or start browsing skills to learn.
+        </p>
+        <div class="flex gap-2" style="justify-content: center; flex-wrap: wrap;">
+          <a href="profile.html" class="btn btn-primary">Go to my profile</a>
+          <a href="browse.html" class="btn btn-outline">Browse skills</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let teachSkills = [];
+    let learnSkills = [];
+    let currentStep = 1;
+
+    function toggleSkill(el, type) {
+      const skill = el.textContent.trim();
+      if (type === 'teach') {
+        if (teachSkills.includes(skill)) {
+          teachSkills = teachSkills.filter(s => s !== skill);
+          el.classList.remove('selected');
+        } else {
+          teachSkills.push(skill);
+          el.classList.add('selected');
+        }
+        renderSelected('teachSelected', teachSkills);
+      } else {
+        if (learnSkills.includes(skill)) {
+          learnSkills = learnSkills.filter(s => s !== skill);
+          el.classList.remove('selected');
+        } else {
+          learnSkills.push(skill);
+          el.classList.add('selected');
+        }
+        renderSelected('learnSelected', learnSkills);
+      }
+    }
+
+    function renderSelected(containerId, skills) {
+      const el = document.getElementById(containerId);
+      if (skills.length === 0) {
+        el.innerHTML = '<span style="font-size:12px;color:var(--text3);">None selected yet</span>';
+        return;
+      }
+      el.innerHTML = skills.map(s =>
+        `<span class="selected-tag">${s} <span class="remove" onclick="removeSkill('${s}','${containerId}')">✕</span></span>`
+      ).join('');
+    }
+
+    function removeSkill(skill, containerId) {
+      if (containerId === 'teachSelected') {
+        teachSkills = teachSkills.filter(s => s !== skill);
+        document.querySelectorAll('#teachGrid .skill-chip').forEach(el => {
+          if (el.textContent.trim() === skill) el.classList.remove('selected');
+        });
+        renderSelected('teachSelected', teachSkills);
+      } else {
+        learnSkills = learnSkills.filter(s => s !== skill);
+        document.querySelectorAll('#learnGrid .skill-chip').forEach(el => {
+          if (el.textContent.trim() === skill) el.classList.remove('selected');
+        });
+        renderSelected('learnSelected', learnSkills);
+      }
+    }
+
+    function goStep(step) {
+      document.getElementById('step' + currentStep).classList.remove('active');
+      currentStep = step;
+      document.getElementById('step' + step).classList.add('active');
+
+      [1, 2, 3].forEach(i => {
+        const dot = document.getElementById('dot' + i);
+        const lbl = document.getElementById('lbl' + i);
+        dot.classList.remove('active', 'done');
+        lbl.classList.remove('active');
+        if (i < step) { dot.classList.add('done'); dot.textContent = '✓'; }
+        else if (i === step) { dot.classList.add('active'); dot.textContent = i; lbl.classList.add('active'); }
+        else { dot.textContent = i; }
+      });
+
+      if (step === 2) {
+        [1, 2].forEach(i => {
+          const line = document.getElementById('line' + i);
+          if (i < step) line.classList.add('done');
+          else line.classList.remove('done');
+        });
+      }
+
+      if (step === 3) {
+        ['line1', 'line2'].forEach(l => document.getElementById(l).classList.add('done'));
+        const list = document.getElementById('testSkillsList');
+        if (teachSkills.length === 0) {
+          list.innerHTML = '<div style="font-size:13px;color:var(--text3);">— No skills declared yet —</div>';
+        } else {
+          list.innerHTML = teachSkills.map(s => `
+            <div class="test-skill-row">
+              <div style="font-weight:500;font-size:14px;">${s}</div>
+              <span class="test-status test-pending">Test pending</span>
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    function submitForm() {
+      const agree = document.getElementById('agreeTerms').checked;
+      if (!agree) { alert('Please agree to the terms to continue.'); return; }
+
+      // Save to localStorage for demo
+      const name = document.getElementById('fullname').value || 'Sneha N.';
+      localStorage.setItem('ss_user', JSON.stringify({
+        name: name,
+        email: document.getElementById('email').value,
+        teach: teachSkills,
+        learn: learnSkills,
+        points: 50,
+        role: document.getElementById('role').value || 'Student'
+      }));
+
+      document.getElementById('formArea').style.display = 'none';
+      document.getElementById('successView').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>

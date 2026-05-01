@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Matches — SkillSwap</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .match-page { padding-top: 70px; min-height: 100vh; }
+
+    .match-content {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+    }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    /* MATCH HIGHLIGHT CARD */
+    .top-match {
+      background: var(--card);
+      border: 0.5px solid rgba(29,158,117,0.35);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin: 1.5rem 0 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .top-match::before {
+      content: 'BEST MATCH';
+      position: absolute;
+      top: 0; right: 0;
+      background: rgba(29,158,117,0.12);
+      color: var(--green);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      padding: 5px 14px;
+      border-bottom-left-radius: var(--radius-sm);
+    }
+
+    .match-two-col {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .match-user-side { }
+
+    .match-user-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1.25rem;
+    }
+
+    .match-user-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .match-user-role { font-size: 12px; color: var(--text2); }
+
+    .match-section-lbl {
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+
+    .match-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .match-icon-big {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(29,158,117,0.12);
+      border: 1.5px solid rgba(29,158,117,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: var(--green);
+      font-weight: 800;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .match-confirmed {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 0.08em;
+    }
+
+    .match-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 0.5px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    /* OTHER MATCHES */
+    .matches-section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+
+    .match-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .match-row {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 1rem;
+      align-items: center;
+      transition: border-color 0.2s;
+      cursor: pointer;
+    }
+
+    .match-row:hover { border-color: var(--border-hover); }
+
+    .match-row-name { font-size: 14px; font-weight: 600; }
+    .match-row-skills { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+    .match-row-score {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    .match-score-lbl { font-size: 10px; color: var(--text3); }
+
+    .btn-msg {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 16px;
+      background: transparent;
+      color: var(--text2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .btn-msg:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    /* PROPOSE SWAP MODAL style (inline) */
+    .propose-panel {
+      background: var(--bg2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-top: 2rem;
+      display: none;
+    }
+
+    .propose-panel h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .swap-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.25rem 0;
+    }
+
+    .swap-opt {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .swap-opt:hover { border-color: rgba(29,158,117,0.4); }
+    .swap-opt.chosen { border-color: var(--green); background: rgba(29,158,117,0.08); }
+
+    .swap-opt-icon { font-size: 28px; margin-bottom: 8px; }
+    .swap-opt-title { font-weight: 600; font-size: 14px; }
+    .swap-opt-desc { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+    @media (max-width: 620px) {
+      .match-two-col { grid-template-columns: 1fr; }
+      .match-center { display: none; }
+      .match-row { grid-template-columns: auto 1fr auto; }
+      .match-row-score { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Skill<span>Swap</span></a>
+    <ul class="nav-links">
+      <li><a href="browse.html">Browse Skills</a></li>
+      <li><a href="match.html" style="color:var(--green);">My Matches</a></li>
+    </ul>
+    <div class="nav-btns">
+      <a href="profile.html" class="btn">My Profile</a>
+    </div>
+  </nav>
+
+  <div class="match-page">
+    <div class="match-content">
+
+      <div class="page-title fade-up">Your matches</div>
+      <p class="text-muted text-sm fade-up-1" style="margin-bottom: 0;">People whose teach/learn skills perfectly overlap with yours.</p>
+
+      <!-- TOP MATCH CARD -->
+      <div class="top-match fade-up-2">
+        <div class="match-two-col">
+
+          <div class="match-user-side">
+            <div class="match-user-head">
+              <div class="avatar av-green" id="myInitials">SN</div>
+              <div>
+                <div class="match-user-name" id="myName">You (Sneha)</div>
+                <div class="match-user-role" id="myRole">Student</div>
+              </div>
+            </div>
+            <div class="match-section-lbl">You teach</div>
+            <div class="flex gap-1" style="flex-wrap:wrap;margin-bottom:12px;" id="myTeach">
+              <span class="badge badge-teach">Python</span>
+              <span class="badge badge-teach">ML basics</span>
+            </div>
+            <div class="match-section-lbl">You want to learn</div>
+            <div class="flex gap-1" style="flex-wrap:wrap;" id="myLearn">
+              <span class="badge badge-learn">Java</span>
+              <span class="badge badge-learn">DSA</span>
+            </div>
+          </div>
+
+          <div class="match-center">
+            <div class="match-icon-big">⇄</div>
+            <div class="match-confirmed">✓ Matched!</div>
+          </div>
+
+          <div class="match-user-side">
+            <div class="match-user-head">
+              <div class="avatar av-purple">RK</div>
+              <div>
+                <div class="match-user-name">Roy Kumar</div>
+                <div class="match-user-role">B.Tech CSE · 4.8★</div>
+              </div>
+            </div>
+            <div class="match-section-lbl">Rohan teaches</div>
+            <div class="flex gap-1" style="flex-wrap:wrap;margin-bottom:12px;">
+              <span class="badge badge-teach">Java</span>
+              <span class="badge badge-teach">DSA</span>
+            </div>
+            <div class="match-section-lbl">Rohan wants to learn</div>
+            <div class="flex gap-1" style="flex-wrap:wrap;">
+              <span class="badge badge-learn">Python</span>
+              <span class="badge badge-learn">ML basics</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="match-actions">
+          <button class="btn btn-primary" onclick="showPropose()">Propose a swap →</button>
+          <button class="btn btn-outline" onclick="alert('Messaging coming in next version!')">Message Rohan</button>
+          <button class="btn" onclick="alert('Profile view coming soon!')">View full profile</button>
+        </div>
+      </div>
+
+      <!-- PROPOSE PANEL -->
+      <div class="propose-panel" id="proposePanel">
+        <h3>How do you want to swap?</h3>
+        <p class="text-muted text-sm">Choose how this exchange works between you and Rohan.</p>
+
+        <div class="swap-options">
+          <div class="swap-opt" onclick="selectSwap(this)">
+            <div class="swap-opt-icon">🔄</div>
+            <div class="swap-opt-title">Direct skill swap</div>
+            <div class="swap-opt-desc">You teach each other directly — schedule sessions together.</div>
+          </div>
+          <div class="swap-opt" onclick="selectSwap(this)">
+            <div class="swap-opt-icon">⬡</div>
+            <div class="swap-opt-title">Points exchange</div>
+            <div class="swap-opt-desc">Earn points by teaching, use points to learn. Flexible timing.</div>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button class="btn btn-primary" onclick="confirmSwap()">Confirm & send request →</button>
+          <button class="btn" onclick="document.getElementById('proposePanel').style.display='none'">Cancel</button>
+        </div>
+
+        <div id="swapConfirmed" style="display:none;margin-top:1.25rem;background:rgba(29,158,117,0.08);border:0.5px solid rgba(29,158,117,0.25);border-radius:var(--radius-sm);padding:1rem;font-size:14px;color:var(--text2);">
+          ✓ Swap request sent to Rohan! You'll be notified when he accepts.
+        </div>
+      </div>
+
+      <!-- OTHER MATCHES -->
+      <div class="matches-section-title">Other matches</div>
+
+      <div class="match-list">
+        <div class="match-row" onclick="window.location.href='match.html'">
+          <div class="avatar av-amber">AM</div>
+          <div>
+            <div class="match-row-name">Arjun Mehta</div>
+            <div class="match-row-skills">Teaches React · Wants ML basics</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="match-row-score">72%</div>
+            <div class="match-score-lbl">match</div>
+          </div>
+          <button class="btn-msg">Connect</button>
+        </div>
+
+        <div class="match-row" onclick="window.location.href='match.html'">
+          <div class="avatar av-coral">PR</div>
+          <div>
+            <div class="match-row-name">Priya Rao</div>
+            <div class="match-row-skills">Teaches SQL · Wants Python</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="match-row-score">65%</div>
+            <div class="match-score-lbl">match</div>
+          </div>
+          <button class="btn-msg">Connect</button>
+        </div>
+
+        <div class="match-row" onclick="window.location.href='match.html'">
+          <div class="avatar av-purple">KJ</div>
+          <div>
+            <div class="match-row-name">Karan Joshi</div>
+            <div class="match-row-skills">Teaches ML · Wants DSA</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="match-row-score">58%</div>
+            <div class="match-score-lbl">match</div>
+          </div>
+          <button class="btn-msg">Connect</button>
+        </div>
+      </div>
+
+      <!-- EXPLORE MORE -->
+      <div style="margin-top:2rem;text-align:center;padding:2rem;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);">
+        <div style="font-size:14px;color:var(--text2);margin-bottom:1rem;">Want more matches? Add more skills to your profile.</div>
+        <div class="flex gap-2" style="justify-content:center;flex-wrap:wrap;">
+          <a href="profile.html" class="btn btn-outline">Update my skills</a>
+          <a href="browse.html" class="btn">Browse all teachers</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('ss_user') || '{"name":"Sneha Nair","teach":["Python","ML basics"],"learn":["Java","DSA"],"role":"Student"}');
+
+    const name = user.name.split(' ')[0];
+    document.getElementById('myName').textContent = 'You (' + name + ')';
+    document.getElementById('myRole').textContent = user.role || 'Student';
+    document.getElementById('myInitials').textContent = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+    const teach = user.teach || ['Python', 'ML basics'];
+    const learn = user.learn || ['Java', 'DSA'];
+
+    document.getElementById('myTeach').innerHTML = teach.map(s=>`<span class="badge badge-teach">${s}</span>`).join('');
+    document.getElementById('myLearn').innerHTML = learn.map(s=>`<span class="badge badge-learn">${s}</span>`).join('');
+
+    function showPropose() {
+      const panel = document.getElementById('proposePanel');
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function selectSwap(el) {
+      document.querySelectorAll('.swap-opt').forEach(o => o.classList.remove('chosen'));
+      el.classList.add('chosen');
+    }
+
+    function confirmSwap() {
+      const chosen = document.querySelector('.swap-opt.chosen');
+      if (!chosen) { alert('Please select a swap type first.'); return; }
+      document.getElementById('swapConfirmed').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>

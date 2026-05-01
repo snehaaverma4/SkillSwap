@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillSwap — Learn by Teaching</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 20%, rgba(29,158,117,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 80%, rgba(83,74,183,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      width: 32px;
+      height: 0.5px;
+      background: var(--green);
+      opacity: 0.5;
+    }
+
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(42px, 7vw, 82px);
+      line-height: 1.0;
+      letter-spacing: -3px;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .hero-title .accent { color: var(--green); }
+    .hero-title .dim { color: var(--text2); }
+
+    .hero-sub {
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--text2);
+      font-weight: 300;
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 4rem;
+    }
+
+    .hero-btn-main {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 13px 32px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      letter-spacing: 0.01em;
+    }
+
+    .hero-btn-main:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+    .hero-btn-sec {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 13px 32px;
+      background: transparent;
+      color: var(--text2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .hero-btn-sec:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    /* FLOATING SKILL CHIPS */
+    .floating-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 600px;
+      opacity: 0.55;
+    }
+
+    .chip {
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 0.5px solid var(--border);
+      color: var(--text2);
+      background: var(--bg2);
+    }
+
+    /* STATS BAR */
+    .stats-bar {
+      background: var(--bg2);
+      border-top: 0.5px solid var(--border);
+      border-bottom: 0.5px solid var(--border);
+      padding: 1.5rem 2rem;
+    }
+
+    .stats-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text2);
+      margin-top: 2px;
+    }
+
+    /* HOW IT WORKS */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      position: relative;
+    }
+
+    .step-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem 1.5rem;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .step-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--green);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s;
+    }
+
+    .step-card:hover { border-color: var(--border-hover); transform: translateY(-3px); }
+    .step-card:hover::before { transform: scaleX(1); }
+
+    .step-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      color: rgba(29,158,117,0.2);
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+
+    /* MATCH DEMO SECTION */
+    <!-- .match-section {
+      background: var(--bg2);
+      border-top: 0.5px solid var(--border);
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .match-demo-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1.5rem;
+      align-items: center;
+      max-width: 750px;
+      margin: 0 auto;
+    }
+
+    .profile-demo {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+
+    .match-arrow-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .match-arrow-icon {
+      font-family: 'Syne', sans-serif;
+      font-size: 32px;
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .match-tag {
+      background: rgba(29,158,117,0.12);
+      color: var(--green);
+      border: 0.5px solid rgba(29,158,117,0.3);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+      animation: pulse-border 2s infinite;
+    } -->
+
+    /* VERIFY SECTION */
+    .verify-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .verify-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .verify-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: rgba(29,158,117,0.1);
+      border: 0.5px solid rgba(29,158,117,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    /* POINTS SECTION */
+    .points-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .pts-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .pts-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+    }
+
+    .pts-plus { color: var(--green); }
+    .pts-minus { color: #e8855a; }
+
+    /* FOOTER */
+    footer {
+      background: var(--bg2);
+      border-top: 0.5px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text3);
+      font-size: 13px;
+    }
+
+    footer a { color: var(--text2); text-decoration: none; }
+    footer a:hover { color: var(--green); }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">Skill<span>Swap</span></a>
+    <ul class="nav-links">
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#verify">Verification</a></li>
+      <li><a href="browse.html">Browse skills</a></li>
+    </ul>
+    <div class="nav-btns">
+      <a href="login.html" class="btn">Log in</a>
+      <a href="register.html" class="btn btn-primary">Get started</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero page">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+
+    <div class="hero-eyebrow fade-up">No money. Just knowledge.</div>
+
+    <h1 class="hero-title fade-up-1">
+      Trade skills,<br/>
+      <span class="accent">not cash</span>
+    </h1>
+
+    <p class="hero-sub fade-up-2">
+      Teach what you know, learn what you don't. SkillSwap connects you with verified teachers who want exactly what you can offer.
+    </p>
+
+    <div class="hero-btns fade-up-3">
+      <a href="register.html" class="hero-btn-main">Start swapping free →</a>
+      <a href="browse.html" class="hero-btn-sec">Browse skills</a>
+    </div>
+
+    <div class="floating-chips fade-up-4">
+      <span class="chip">Java</span>
+      <span class="chip">Python</span>
+      <span class="chip">Machine Learning</span>
+      <span class="chip">UI Design</span>
+      <span class="chip">DSA</span>
+      <span class="chip">React</span>
+      <span class="chip">SQL</span>
+      <span class="chip">Photography</span>
+      <span class="chip">Guitar</span>
+      <span class="chip">Spanish</span>
+      <span class="chip">Finance</span>
+    </div>
+  </section>
+
+  <!-- STATS
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div>
+        <div class="stat-num">2,400+</div>
+        <div class="stat-label">Verified teachers</div>
+      </div>
+      <div>
+        <div class="stat-num">180+</div>
+        <div class="stat-label">Skills listed</div>
+      </div>
+      <div>
+        <div class="stat-num">8,900+</div>
+        <div class="stat-label">Sessions completed</div>
+      </div>
+      <div>
+        <div class="stat-num">₹0</div>
+        <div class="stat-label">Cost to learn</div>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how">
+    <div class="section-label">Process</div>
+    <h2 class="section-title">How SkillSwap works</h2>
+    <p class="text-muted text-sm" style="margin-bottom: 2.5rem; max-width: 480px;">
+      Four simple steps from signing up to your first skill exchange — no payments, no gatekeeping.
+    </p>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-title">Register & declare skills</div>
+        <div class="step-desc">Create your profile. List skills you can teach — be honest, you'll be tested on them.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-title">Pass the skill test</div>
+        <div class="step-desc">Take a short 15-min AI-evaluated test per skill. Pass = verified badge on your profile.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-title">Find a match</div>
+        <div class="step-desc">Search for what you want to learn. If your offer matches their wish list — it's a swap.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">04</div>
+        <div class="step-title">Teach or earn points</div>
+        <div class="step-desc">Swap directly with a match, or teach anyone and earn points to spend on your own learning.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATCH DEMO -->
+  <!-- <section class="match-section">
+    <div class="section">
+      <div class="section-label">Matching</div>
+      <h2 class="section-title" style="margin-bottom: 2.5rem;">See a match in action</h2>
+
+      <div class="match-demo-wrap">
+        <div class="profile-demo">
+          <div class="flex items-center gap-2" style="margin-bottom: 1rem;">
+            <div class="avatar av-green">SN</div>
+            <div>
+              <div style="font-weight: 600; font-size: 14px;">Sneha N.</div>
+              <div style="font-size: 12px; color: var(--text2);">120 pts</div>
+            </div>
+          </div>
+          <div style="margin-bottom: 8px;">
+            <div style="font-size: 11px; color: var(--text3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.08em;">Teaches</div>
+            <div class="flex gap-1" style="flex-wrap: wrap;">
+              <span class="badge badge-teach">Python</span>
+              <span class="badge badge-teach">ML basics</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.08em;">Wants to learn</div>
+            <div class="flex gap-1" style="flex-wrap: wrap;">
+              <span class="badge badge-learn">Java</span>
+              <span class="badge badge-learn">DSA</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-arrow-wrap">
+          <div class="match-arrow-icon">⇄</div>
+          <div class="match-tag">✓ Match!</div>
+        </div>
+
+        <div class="profile-demo">
+          <div class="flex items-center gap-2" style="margin-bottom: 1rem;">
+            <div class="avatar av-purple">RK</div>
+            <div>
+              <div style="font-weight: 600; font-size: 14px;">Rohan K.</div>
+              <div style="font-size: 12px; color: var(--text2);">85 pts</div>
+            </div>
+          </div>
+          <div style="margin-bottom: 8px;">
+            <div style="font-size: 11px; color: var(--text3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.08em;">Teaches</div>
+            <div class="flex gap-1" style="flex-wrap: wrap;">
+              <span class="badge badge-teach">Java</span>
+              <span class="badge badge-teach">DSA</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.08em;">Wants to learn</div>
+            <div class="flex gap-1" style="flex-wrap: wrap;">
+              <span class="badge badge-learn">Python</span>
+              <span class="badge badge-learn">ML basics</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section> -->
+
+  <!-- VERIFICATION -->
+  <section class="section" id="verify">
+    <div class="section-label">Trust & Safety</div>
+    <h2 class="section-title">Only verified teachers</h2>
+    <p class="text-muted text-sm" style="margin-bottom: 2.5rem; max-width: 480px;">
+      We built a 4-layer system to ensure no ghost profiles, no bluffers, and no wasted time.
+    </p>
+
+    <div class="verify-grid">
+      <div class="verify-card">
+        <div class="verify-icon-box">📋</div>
+        <div style="font-weight: 600; font-size: 14px;">Skill declaration at signup</div>
+        <div class="text-sm text-muted">Choose your teaching skills on day one — you can't add new ones without re-testing.</div>
+      </div>
+      <div class="verify-card">
+        <div class="verify-icon-box">✅</div>
+        <div style="font-weight: 600; font-size: 14px;">AI-graded skill test</div>
+        <div class="text-sm text-muted">Each skill requires a 15-min test. Score under 70%? You can retake after 48 hours.</div>
+      </div>
+      <div class="verify-card">
+        <div class="verify-icon-box">⭐</div>
+        <div style="font-weight: 600; font-size: 14px;">Post-session ratings</div>
+        <div class="text-sm text-muted">Learners rate each session. A rating below 3.5/5 triggers an automatic re-verification.</div>
+      </div>
+      <div class="verify-card">
+        <div class="verify-icon-box">⏸️</div>
+        <div style="font-weight: 600; font-size: 14px;">Inactive teacher flag</div>
+        <div class="text-sm text-muted">No teaching in 60 days? Your profile auto-pauses so learners aren't misled.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POINTS SYSTEM -->
+  <section class="section" style="padding-top: 0;">
+    <div class="section-label">Economy</div>
+    <h2 class="section-title">The points system</h2>
+    <p class="text-muted text-sm" style="margin-bottom: 2.5rem;">No direct match? Earn points teaching anyone, spend them learning from anyone else.</p>
+
+    <div class="points-row">
+      <div class="pts-card">
+        <div class="pts-num pts-plus">+30</div>
+        <div style="font-size: 14px; font-weight: 500; margin-top: 6px;">Per teaching session</div>
+        <div class="text-sm text-muted mt-2">Earn every time you successfully teach.</div>
+      </div>
+      <div class="pts-card">
+        <div class="pts-num pts-minus">−20</div>
+        <div style="font-size: 14px; font-weight: 500; margin-top: 6px;">To enrol in a class</div>
+        <div class="text-sm text-muted mt-2">Use your earned points to book sessions.</div>
+      </div>
+      <div class="pts-card">
+        <div class="pts-num pts-plus">+50</div>
+        <div style="font-size: 14px; font-weight: 500; margin-top: 6px;">For a 5-star rating</div>
+        <div class="text-sm text-muted mt-2">Great teaching gets bonus points.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section" style="padding-top: 0; text-align: center;">
+    <div style="background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 3rem 2rem;">
+      <div class="section-label" style="justify-content: center; display: flex;">Ready?</div>
+      <h2 style="font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 1rem; letter-spacing: -1px;">
+        Start learning for free today
+      </h2>
+      <p class="text-muted" style="margin-bottom: 2rem; font-size: 15px;">
+        Join 2,400+ students already swapping skills on SkillSwap.
+      </p>
+      <a href="register.html" class="hero-btn-main">Create your free account →</a>
+    </div>
+  </section>
+
+  <!-- <footer>
+    <div style="margin-bottom: 8px;">
+      <a href="index.html">Home</a> &nbsp;·&nbsp;
+      <a href="browse.html">Browse</a> &nbsp;·&nbsp;
+      <a href="register.html">Register</a> &nbsp;·&nbsp;
+      <a href="login.html">Login</a>
+    </div>
+     <div>© 2025 SkillSwap · Learn by teaching · No money exchanged</div>
+  </footer> -->
+
+</body>
+</html>
