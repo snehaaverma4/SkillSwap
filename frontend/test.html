@@ -5,6 +5,251 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Skill Test — SkillSwap</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="api.js"></script>
+  <script>
+    let selectedSkillId = null;
+    let selectedSkillName = '';
+    let generatedQuestions = null;
+    let mcqAnswers = {};
+    let theoryAnswers = {};
+    let timerInterval = null;
+    let timeLeft = 60 * 60; // 1 hour // 15 minutes in seconds
+
+    // ── LOAD SKILLS ──────────────────────────────────────────────────────────
+    async function loadSkills() {
+      //const token = localStorage.getItem('ss_token'); -->
+      //if (!token) { window.location.href = 'login.html'; return; }
+      initNav();
+      try {
+        const profile = await API.users.profile();
+        const teach = profile.teachSkills || [];
+
+        const grid = document.getElementById('skillGrid');
+        if (teach.length === 0) {
+          grid.innerHTML = '<div style="font-size:13px;color:var(--text2);">No teaching skills declared. <a href="profile.html" style="color:var(--green);">Go to profile →</a></div>';
+          return;
+        }
+
+        grid.innerHTML = teach.map(s => `
+          <div class="skill-pick-card" onclick="selectSkill(${s.id}, '${s.name}', this)" id="skillCard${s.id}">
+            <div style="font-size:24px;">${getSkillEmoji(s.name)}</div>
+            <div class="skill-pick-name">${s.name}</div>
+            <div class="skill-pick-status">${s.is_verified ? '✓ Verified' : 'Not verified yet'}</div>
+          </div>
+        `).join('');
+      } catch (err) {
+        if (err.message.includes('401')) Auth.logout();
+      }
+    }
+
+    function getSkillEmoji(name) {
+      const map = {
+        'Python': '🐍', 'Java': '☕', 'JavaScript': '🟨', 'React': '⚛️',
+        'SQL': '🗄️', 'DSA': '🌳', 'Machine Learning': '🤖', 'UI / UX Design': '🎨',
+        'C / C++': '⚙️', 'Data Analysis': '📊', 'Mathematics': '📐', 'English / Writing': '✍️'
+      };
+      return map[name] || '💡';
+    }
+
+    function selectSkill(id, name, el) {
+      document.querySelectorAll('.skill-pick-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedSkillId = id;
+      selectedSkillName = name;
+      const btn = document.getElementById('startBtn');
+      btn.disabled = false;
+      btn.textContent = `Start "${name}" test →`;
+    }
+
+    // ── START TEST ────────────────────────────────────────────────────────────
+    async function startTest() {
+      if (!selectedSkillId) return;
+
+      // Show loading
+      document.getElementById('pickScreen').style.display = 'none';
+      document.getElementById('loadingScreen').style.display = 'flex';
+
+      try {
+        const res = await fetch('/api/test/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + Auth.getToken()
+          },
+          body: JSON.stringify({ skillId: selectedSkillId })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to generate test');
+
+        generatedQuestions = data.questions;
+        renderTest(data.questions);
+
+      } catch (err) {
+        document.getElementById('loadingScreen').style.display = 'none';
+        document.getElementById('pickScreen').style.display = 'block';
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ── RENDER TEST ───────────────────────────────────────────────────────────
+    function renderTest(questions) {
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('testScreen').style.display = 'block';
+      document.getElementById('submitBar').style.display = 'flex';
+      document.getElementById('testSkillName').textContent = selectedSkillName;
+
+      // MCQ
+      const mcqContainer = document.getElementById('mcqContainer');
+      mcqContainer.innerHTML = questions.mcq.map(q => `
+        <div class="question-card">
+          <div class="question-num">Question ${q.id} of 10</div>
+          <div class="question-text">${q.question}</div>
+          <div class="options-grid">
+            ${q.options.map(opt => `
+              <button class="option-btn" onclick="selectMCQ(${q.id}, '${opt.charAt(0)}', this)">
+                <span class="option-letter">${opt.charAt(0)}</span>
+                <span>${opt.substring(3)}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      // Theory
+      const theoryContainer = document.getElementById('theoryContainer');
+      theoryContainer.innerHTML = questions.theory.map((q, i) => `
+        <div class="theory-card">
+          <div class="question-num">Question ${i + 11} of 14</div>
+          <div class="question-text">${q.question}</div>
+          <div class="theory-hint">💡 Hint: ${q.hint}</div>
+          <textarea
+            class="theory-textarea"
+            placeholder="Write your answer here..."
+            oninput="saveTheory(${q.id}, this.value)"
+            rows="4"
+          ></textarea>
+        </div>
+      `).join('');
+
+      // Start timer
+      startTimer();
+      updateProgress();
+    }
+
+    // ── MCQ SELECTION ─────────────────────────────────────────────────────────
+    function selectMCQ(qId, answer, btn) {
+      // Deselect others in same question
+      const card = btn.closest('.question-card');
+      card.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      mcqAnswers[qId] = answer;
+      updateProgress();
+    }
+
+    function saveTheory(qId, value) {
+      theoryAnswers[qId] = value;
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const mcqDone = Object.keys(mcqAnswers).length;
+      const theoryDone = Object.values(theoryAnswers).filter(v => v.trim().length > 0).length;
+      const total = mcqDone + theoryDone;
+      const percent = (total / 15) * 100;
+
+      document.getElementById('progressBar').style.width = percent + '%';
+      document.getElementById('submitProgress').textContent = `${total}/15 answered`;
+    }
+
+    // ── TIMER ─────────────────────────────────────────────────────────────────
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        const timerEl = document.getElementById('timer');
+        timerEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+        if (timeLeft <= 300) timerEl.className = 'timer warning'; // 5 min
+        if (timeLeft <= 60)  timerEl.className = 'timer danger';  // 1 min
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          showToast('⏰ Time up! Submitting your test...', 'error');
+          submitTest();
+        }
+      }, 1000);
+    }
+
+    // ── SUBMIT ────────────────────────────────────────────────────────────────
+    async function submitTest() {
+      clearInterval(timerInterval);
+      const btn = document.getElementById('submitBtn');
+      btn.textContent = 'Evaluating with AI...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/test/evaluate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + Auth.getToken()
+          },
+          body: JSON.stringify({
+            skillId: selectedSkillId,
+            mcqAnswers,
+            theoryAnswers,
+            questions: generatedQuestions
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Evaluation failed');
+
+        showResult(data);
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.textContent = 'Submit Test →';
+        btn.disabled = false;
+      }
+    }
+
+    // ── SHOW RESULT ───────────────────────────────────────────────────────────
+    function showResult(data) {
+      document.getElementById('testScreen').style.display = 'none';
+      document.getElementById('submitBar').style.display = 'none';
+      document.getElementById('resultScreen').style.display = 'block';
+
+      const passed = data.passed;
+      const circle = document.getElementById('scoreCircle');
+      if (!passed) circle.classList.add('fail');
+
+      document.getElementById('scoreNum').textContent = data.totalScore;
+      document.getElementById('resultTitle').textContent = passed ? '🎉 You passed!' : '😔 Not quite there';
+      document.getElementById('resultMsg').textContent = data.message;
+      document.getElementById('mcqResult').textContent = `${data.mcqScore}/10`;
+
+      const theoryTotal = data.theoryResults ? data.theoryResults.reduce((a, b) => a + b.score, 0) : 0;
+      document.getElementById('theoryResult').textContent = `${theoryTotal}/40`;
+
+      // Theory feedback
+      if (data.theoryResults) {
+        document.getElementById('theoryFeedback').innerHTML = `
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">AI Feedback</div>
+          ${data.theoryResults.map((r, i) => `
+            <div class="feedback-item">
+              <div class="feedback-score">Q${i + 11} — Score: ${r.score}/10</div>
+              <div class="feedback-text">${r.feedback}</div>
+            </div>
+          `).join('')}
+        `;
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    loadSkills();
+  </script>
   <style>
     .test-page { padding-top: 70px; min-height: 100vh; }
 
@@ -481,252 +726,6 @@
     </div>
 
   </div>
-
-  <script src="api.js"></script>
-  <script>
-    let selectedSkillId = null;
-    let selectedSkillName = '';
-    let generatedQuestions = null;
-    let mcqAnswers = {};
-    let theoryAnswers = {};
-    let timerInterval = null;
-    let timeLeft = 60 * 60; // 1 hour // 15 minutes in seconds
-
-    // ── LOAD SKILLS ──────────────────────────────────────────────────────────
-    async function loadSkills() {
-      const token = localStorage.getItem('ss_token');
-      if (!token) { window.location.href = 'login.html'; return; }
-      initNav();
-      try {
-        const profile = await API.users.profile();
-        const teach = profile.teachSkills || [];
-
-        const grid = document.getElementById('skillGrid');
-        if (teach.length === 0) {
-          grid.innerHTML = '<div style="font-size:13px;color:var(--text2);">No teaching skills declared. <a href="profile.html" style="color:var(--green);">Go to profile →</a></div>';
-          return;
-        }
-
-        grid.innerHTML = teach.map(s => `
-          <div class="skill-pick-card" onclick="selectSkill(${s.id}, '${s.name}', this)" id="skillCard${s.id}">
-            <div style="font-size:24px;">${getSkillEmoji(s.name)}</div>
-            <div class="skill-pick-name">${s.name}</div>
-            <div class="skill-pick-status">${s.is_verified ? '✓ Verified' : 'Not verified yet'}</div>
-          </div>
-        `).join('');
-      } catch (err) {
-        if (err.message.includes('401')) Auth.logout();
-      }
-    }
-
-    function getSkillEmoji(name) {
-      const map = {
-        'Python': '🐍', 'Java': '☕', 'JavaScript': '🟨', 'React': '⚛️',
-        'SQL': '🗄️', 'DSA': '🌳', 'Machine Learning': '🤖', 'UI / UX Design': '🎨',
-        'C / C++': '⚙️', 'Data Analysis': '📊', 'Mathematics': '📐', 'English / Writing': '✍️'
-      };
-      return map[name] || '💡';
-    }
-
-    function selectSkill(id, name, el) {
-      document.querySelectorAll('.skill-pick-card').forEach(c => c.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedSkillId = id;
-      selectedSkillName = name;
-      const btn = document.getElementById('startBtn');
-      btn.disabled = false;
-      btn.textContent = `Start "${name}" test →`;
-    }
-
-    // ── START TEST ────────────────────────────────────────────────────────────
-    async function startTest() {
-      if (!selectedSkillId) return;
-
-      // Show loading
-      document.getElementById('pickScreen').style.display = 'none';
-      document.getElementById('loadingScreen').style.display = 'flex';
-
-      try {
-        const res = await fetch('/api/test/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + Auth.getToken()
-          },
-          body: JSON.stringify({ skillId: selectedSkillId })
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to generate test');
-
-        generatedQuestions = data.questions;
-        renderTest(data.questions);
-
-      } catch (err) {
-        document.getElementById('loadingScreen').style.display = 'none';
-        document.getElementById('pickScreen').style.display = 'block';
-        showToast(err.message, 'error');
-      }
-    }
-
-    // ── RENDER TEST ───────────────────────────────────────────────────────────
-    function renderTest(questions) {
-      document.getElementById('loadingScreen').style.display = 'none';
-      document.getElementById('testScreen').style.display = 'block';
-      document.getElementById('submitBar').style.display = 'flex';
-      document.getElementById('testSkillName').textContent = selectedSkillName;
-
-      // MCQ
-      const mcqContainer = document.getElementById('mcqContainer');
-      mcqContainer.innerHTML = questions.mcq.map(q => `
-        <div class="question-card">
-          <div class="question-num">Question ${q.id} of 10</div>
-          <div class="question-text">${q.question}</div>
-          <div class="options-grid">
-            ${q.options.map(opt => `
-              <button class="option-btn" onclick="selectMCQ(${q.id}, '${opt.charAt(0)}', this)">
-                <span class="option-letter">${opt.charAt(0)}</span>
-                <span>${opt.substring(3)}</span>
-              </button>
-            `).join('')}
-          </div>
-        </div>
-      `).join('');
-
-      // Theory
-      const theoryContainer = document.getElementById('theoryContainer');
-      theoryContainer.innerHTML = questions.theory.map((q, i) => `
-        <div class="theory-card">
-          <div class="question-num">Question ${i + 11} of 14</div>
-          <div class="question-text">${q.question}</div>
-          <div class="theory-hint">💡 Hint: ${q.hint}</div>
-          <textarea
-            class="theory-textarea"
-            placeholder="Write your answer here..."
-            oninput="saveTheory(${q.id}, this.value)"
-            rows="4"
-          ></textarea>
-        </div>
-      `).join('');
-
-      // Start timer
-      startTimer();
-      updateProgress();
-    }
-
-    // ── MCQ SELECTION ─────────────────────────────────────────────────────────
-    function selectMCQ(qId, answer, btn) {
-      // Deselect others in same question
-      const card = btn.closest('.question-card');
-      card.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      mcqAnswers[qId] = answer;
-      updateProgress();
-    }
-
-    function saveTheory(qId, value) {
-      theoryAnswers[qId] = value;
-      updateProgress();
-    }
-
-    function updateProgress() {
-      const mcqDone = Object.keys(mcqAnswers).length;
-      const theoryDone = Object.values(theoryAnswers).filter(v => v.trim().length > 0).length;
-      const total = mcqDone + theoryDone;
-      const percent = (total / 15) * 100;
-
-      document.getElementById('progressBar').style.width = percent + '%';
-      document.getElementById('submitProgress').textContent = `${total}/15 answered`;
-    }
-
-    // ── TIMER ─────────────────────────────────────────────────────────────────
-    function startTimer() {
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        const mins = Math.floor(timeLeft / 60);
-        const secs = timeLeft % 60;
-        const timerEl = document.getElementById('timer');
-        timerEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-
-        if (timeLeft <= 300) timerEl.className = 'timer warning'; // 5 min
-        if (timeLeft <= 60)  timerEl.className = 'timer danger';  // 1 min
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          showToast('⏰ Time up! Submitting your test...', 'error');
-          submitTest();
-        }
-      }, 1000);
-    }
-
-    // ── SUBMIT ────────────────────────────────────────────────────────────────
-    async function submitTest() {
-      clearInterval(timerInterval);
-      const btn = document.getElementById('submitBtn');
-      btn.textContent = 'Evaluating with AI...';
-      btn.disabled = true;
-
-      try {
-        const res = await fetch('/api/test/evaluate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + Auth.getToken()
-          },
-          body: JSON.stringify({
-            skillId: selectedSkillId,
-            mcqAnswers,
-            theoryAnswers,
-            questions: generatedQuestions
-          })
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Evaluation failed');
-
-        showResult(data);
-      } catch (err) {
-        showToast(err.message, 'error');
-        btn.textContent = 'Submit Test →';
-        btn.disabled = false;
-      }
-    }
-
-    // ── SHOW RESULT ───────────────────────────────────────────────────────────
-    function showResult(data) {
-      document.getElementById('testScreen').style.display = 'none';
-      document.getElementById('submitBar').style.display = 'none';
-      document.getElementById('resultScreen').style.display = 'block';
-
-      const passed = data.passed;
-      const circle = document.getElementById('scoreCircle');
-      if (!passed) circle.classList.add('fail');
-
-      document.getElementById('scoreNum').textContent = data.totalScore;
-      document.getElementById('resultTitle').textContent = passed ? '🎉 You passed!' : '😔 Not quite there';
-      document.getElementById('resultMsg').textContent = data.message;
-      document.getElementById('mcqResult').textContent = `${data.mcqScore}/10`;
-
-      const theoryTotal = data.theoryResults ? data.theoryResults.reduce((a, b) => a + b.score, 0) : 0;
-      document.getElementById('theoryResult').textContent = `${theoryTotal}/40`;
-
-      // Theory feedback
-      if (data.theoryResults) {
-        document.getElementById('theoryFeedback').innerHTML = `
-          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">AI Feedback</div>
-          ${data.theoryResults.map((r, i) => `
-            <div class="feedback-item">
-              <div class="feedback-score">Q${i + 11} — Score: ${r.score}/10</div>
-              <div class="feedback-text">${r.feedback}</div>
-            </div>
-          `).join('')}
-        `;
-      }
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    loadSkills();
-  </script>
 
 </body>
 </html>
