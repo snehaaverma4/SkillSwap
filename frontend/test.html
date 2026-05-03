@@ -403,7 +403,7 @@
       </div>
 
       <div style="background:rgba(29,158,117,0.06);border:0.5px solid rgba(29,158,117,0.2);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text2);margin-top:1.5rem;">
-        ⏱️ <strong style="color:var(--text);">15 minutes</strong> — 10 MCQ questions + 4 practical questions. AI evaluated.
+        ⏱️ <strong style="color:var(--text);">1 hour</strong> — 10 MCQ questions + 4 practical questions. AI evaluated.
       </div>
 
       <button class="btn-start-test" id="startBtn" disabled onclick="startTest()">
@@ -427,7 +427,7 @@
           <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Skill Test</div>
           <div class="test-skill-name" id="testSkillName">—</div>
         </div>
-        <div class="timer" id="timer">15:00</div>
+        <div class="timer" id="timer">60:00</div>
       </div>
 
       <div class="progress-bar-wrap">
@@ -439,7 +439,7 @@
       <div id="mcqContainer"></div>
 
       <!-- Theory Section -->
-      <div class="test-section-title">Section 2 — Practical / Theory (4 questions)</div>
+      <div class="test-section-title">Section 2 — Practical / Theory (5 questions)</div>
       <div id="theoryContainer"></div>
 
       <div style="height:80px;"></div>
@@ -447,7 +447,7 @@
 
     <!-- SUBMIT BAR -->
     <div class="submit-bar" id="submitBar">
-      <div class="submit-progress" id="submitProgress">0/14 answered</div>
+      <div class="submit-progress" id="submitProgress">0/15 answered</div>
       <button class="btn-submit" id="submitBtn" onclick="submitTest()">Submit Test →</button>
     </div>
 
@@ -490,7 +490,7 @@
     let mcqAnswers = {};
     let theoryAnswers = {};
     let timerInterval = null;
-    let timeLeft = 15 * 60; // 15 minutes in seconds
+    let timeLeft = 60 * 60; // 1 hour // 15 minutes in seconds
 
     // ── LOAD SKILLS ──────────────────────────────────────────────────────────
     async function loadSkills() {
@@ -632,10 +632,10 @@
       const mcqDone = Object.keys(mcqAnswers).length;
       const theoryDone = Object.values(theoryAnswers).filter(v => v.trim().length > 0).length;
       const total = mcqDone + theoryDone;
-      const percent = (total / 14) * 100;
+      const percent = (total / 15) * 100;
 
       document.getElementById('progressBar').style.width = percent + '%';
-      document.getElementById('submitProgress').textContent = `${total}/14 answered`;
+      document.getElementById('submitProgress').textContent = `${total}/15 answered`;
     }
 
     // ── TIMER ─────────────────────────────────────────────────────────────────
