@@ -229,7 +229,7 @@
           <h1 id="profileName">Sneha Nair</h1>
           <div class="profile-meta">
             <span class="badge badge-verified">✓ Verified</span>
-            <span class="badge badge-points" id="profilePoints">⬡ 60 pts</span>
+            <span class="badge badge-points" id="profilePoints">⬡ 50 pts</span>
             <span style="font-size:12px;color:var(--text2);" id="profileRole">Student</span>
           </div>
         </div>
@@ -244,7 +244,7 @@
             <div class="pstat-label">Learning</div>
           </div>
           <div>
-            <div class="pstat-num">0</div>
+            <div class="pstat-num" id="statSessions">0</div>
             <div class="pstat-label">Sessions</div>
           </div>
         </div>
@@ -292,7 +292,7 @@
             <div class="match-preview" onclick="window.location.href='match.html'">
               <div class="avatar av-purple">RK</div>
               <div class="match-preview-info">
-                <div class="match-preview-name">Roy K.</div>
+                <div class="match-preview-name">Rohan K.</div>
                 <div class="match-preview-skills">Teaches Java, DSA · Wants Python</div>
               </div>
               <span class="badge badge-teach">Match!</span>
@@ -322,34 +322,20 @@
         <!-- Points history -->
         <div class="section-card">
           <div class="section-card-title">Points history</div>
-          <div>
-            <div class="pts-item">
-              <div>
-                <div style="font-size:13px;font-weight:500;">Signup bonus</div>
-                <div style="font-size:11px;color:var(--text2);">Welcome to SkillSwap</div>
-              </div>
-              <div class="pts-change pts-gain">+50</div>
-            </div>
-            <div class="pts-item">
-              <div>
-                <div style="font-size:13px;font-weight:500;">First profile complete</div>
-                <div style="font-size:11px;color:var(--text2);">Fill in all profile info</div>
-              </div>
-              <div class="pts-change pts-gain">+10</div>
-            </div>
+          <div id="pointsHistoryList">
+            <div style="font-size:13px;color:var(--text3);">Loading...</div>
           </div>
           <div style="margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
             <span style="font-size:13px;color:var(--text2);">Total balance</span>
-            <span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--green);" id="totalPoints">60 pts</span>
+            <span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--green);" id="totalPoints">— pts</span>
           </div>
         </div>
 
         <!-- Recent sessions -->
         <div class="section-card">
           <div class="section-card-title">Recent sessions</div>
-          <div style="font-size:13px;color:var(--text3);padding:8px 0;">No sessions yet. Start your first swap!</div>
-          <div style="margin-top:1rem;">
-            <a href="browse.html" class="btn btn-primary" style="font-size:12px;padding:7px 16px;">Find a teacher →</a>
+          <div id="sessionsContainer">
+            <div style="font-size:13px;color:var(--text3);">Loading...</div>
           </div>
         </div>
 
@@ -358,49 +344,161 @@
   </div>
 
   <script>
-    function getInitials(name) {
-      return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    requireAuth && requireAuth();
+
+    async function loadProfile() {
+      try {
+        const user = await API.users.profile();
+        Auth.setUser(user);
+        initNav();
+
+        // ── Basic info ──
+        document.getElementById('profileName').textContent = user.name;
+        document.getElementById('profileInitials').textContent = user.avatar_initials || user.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+        document.getElementById('profileRole').textContent = user.role || 'Student';
+        document.getElementById('profilePoints').textContent = '⬡ ' + user.points + ' pts';
+
+        const teach = user.teachSkills || [];
+        const learn = user.learnSkills || [];
+        const hasPending = teach.some(s => !s.is_verified);
+
+        // ── Stats (real numbers) ──
+        document.getElementById('statTeach').textContent = teach.length;
+        document.getElementById('statLearn').textContent = learn.length;
+        document.getElementById('statSessions').textContent = user.sessionsCompleted || 0;
+
+        // ── Teach skills ──
+        const teachList = document.getElementById('teachSkillsList');
+        teachList.innerHTML = teach.length > 0 ? teach.map(s => `
+          <div class="skill-row">
+            <div class="skill-name">${s.name}</div>
+            ${s.is_verified
+              ? `<span class="badge badge-verified">✓ Verified ${s.test_score ? '(' + s.test_score + '%)' : ''}</span>`
+              : `<button onclick="goToTest()" style="font-size:11px;padding:4px 12px;background:rgba(239,159,39,0.12);color:#EF9F27;border:0.5px solid rgba(239,159,39,0.3);border-radius:6px;cursor:pointer;font-family:Outfit,sans-serif;">Take test →</button>`}
+          </div>`).join('')
+        : '<div style="font-size:13px;color:var(--text3);">No skills added yet.</div>';
+
+        // ── Learn skills (no "Searching..." — just show the skill) ──
+        const learnList = document.getElementById('learnSkillsList');
+        learnList.innerHTML = learn.length > 0 ? learn.map(s => `
+          <div class="skill-row">
+            <div class="skill-name">${s.name}</div>
+            <span style="font-size:11px;color:var(--text3);">On wishlist</span>
+          </div>`).join('')
+        : '<div style="font-size:13px;color:var(--text3);">Nothing listed yet.</div>';
+
+        // ── Test pending card ──
+        if (!hasPending) {
+          document.getElementById('testPendingCard').style.display = 'none';
+        } else {
+          // Fix button to redirect to test page
+          const testBtn = document.querySelector('#testPendingCard button');
+          if (testBtn) testBtn.onclick = goToTest;
+        }
+
+        // ── Points history (real from API) ──
+        const hist = user.pointsHistory || [];
+        const totalEl = document.getElementById('totalPoints');
+        if (totalEl) totalEl.textContent = user.points + ' pts';
+
+        const histContainer = document.getElementById('pointsHistoryList');
+        if (histContainer) {
+          histContainer.innerHTML = hist.length > 0 ? hist.map(h => `
+            <div class="pts-item">
+              <div>
+                <div style="font-size:13px;font-weight:500;">${h.reason}</div>
+                <div style="font-size:11px;color:var(--text2);">${new Date(h.created_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'})}</div>
+              </div>
+              <div class="pts-change ${h.points_change > 0 ? 'pts-gain' : 'pts-spend'}">${h.points_change > 0 ? '+' : ''}${h.points_change}</div>
+            </div>`).join('')
+          : '<div style="font-size:13px;color:var(--text3);padding:8px 0;">No points activity yet.</div>';
+        }
+
+        // ── Sessions ──
+        loadSessions();
+
+        // ── Matches ──
+        loadMatches();
+
+      } catch (err) {
+        console.error(err);
+        if (err.message && (err.message.includes('token') || err.message.includes('401'))) Auth.logout();
+      }
     }
 
-    const user = JSON.parse(localStorage.getItem('ss_user') || '{"name":"Sneha Nair","teach":["Python","ML basics"],"learn":["Java","DSA"],"points":50,"role":"Student"}');
-
-    document.getElementById('profileName').textContent = user.name;
-    document.getElementById('profileInitials').textContent = getInitials(user.name);
-    document.getElementById('navName').textContent = user.name.split(' ')[0];
-    document.getElementById('profileRole').textContent = user.role || 'Student';
-    document.getElementById('profilePoints').textContent = '⬡ ' + (user.points || 50) + ' pts';
-    document.getElementById('totalPoints').textContent = ((user.points || 50) + 10) + ' pts';
-
-    const teach = user.teach || [];
-    const learn = user.learn || [];
-
-    document.getElementById('statTeach').textContent = teach.length;
-    document.getElementById('statLearn').textContent = learn.length;
-
-    const teachList = document.getElementById('teachSkillsList');
-    if (teach.length > 0) {
-      teachList.innerHTML = teach.map(s => `
-        <div class="skill-row">
-          <div class="skill-name">${s}</div>
-          <span class="badge badge-learn">Test pending</span>
-        </div>
-      `).join('');
+    function goToTest() {
+      window.location.href = 'test.html';
     }
 
-    const learnList = document.getElementById('learnSkillsList');
-    if (learn.length > 0) {
-      learnList.innerHTML = learn.map(s => `
-        <div class="skill-row">
-          <div class="skill-name">${s}</div>
-          <span class="badge badge-learn">Searching...</span>
-        </div>
-      `).join('');
+    async function loadSessions() {
+      try {
+        const sessions = await API.sessions.list();
+        const container = document.getElementById('sessionsContainer');
+        if (!container) return;
+
+        if (!sessions || sessions.length === 0) {
+          container.innerHTML = `
+            <div style="font-size:13px;color:var(--text3);padding:8px 0;">No sessions yet. Start your first swap!</div>
+            <div style="margin-top:1rem;">
+              <a href="browse.html" class="btn btn-primary" style="font-size:12px;padding:7px 16px;">Find a teacher →</a>
+            </div>`;
+          return;
+        }
+
+        const uid = Auth.getUser()?.id;
+        container.innerHTML = sessions.slice(0, 4).map(s => {
+          const isTeacher = s.teacher_id === uid;
+          const otherName = isTeacher ? s.learner_name : s.teacher_name;
+          const otherInitials = isTeacher ? s.learner_initials : s.teacher_initials;
+          const role = isTeacher ? 'Teaching' : 'Learning';
+          const statusColor = s.status === 'completed' ? 'var(--green)' : s.status === 'cancelled' ? '#e8855a' : 'var(--amber)';
+          return `
+            <div class="session-item">
+              <div class="avatar av-purple">${otherInitials || '?'}</div>
+              <div class="session-info">
+                <div class="session-title">${role} ${s.skill_name} with ${otherName}</div>
+                <div class="session-sub">${s.status.charAt(0).toUpperCase() + s.status.slice(1)} · ${new Date(s.created_at).toLocaleDateString('en-IN')}</div>
+              </div>
+              ${s.status === 'completed' ? `<span style="font-size:11px;color:var(--green);">+${s.points_awarded || 30} pts</span>` : `<span style="font-size:11px;color:${statusColor};">${s.status}</span>`}
+            </div>`;
+        }).join('');
+      } catch(e) {
+        console.error('Sessions load error:', e);
+      }
     }
 
-    if (teach.length === 0) {
-      document.getElementById('testPendingCard').style.display = 'none';
+    async function loadMatches() {
+      try {
+        const matches = await API.matches.list();
+        const matchesList = document.getElementById('matchesList');
+        if (!matchesList) return;
+        const colors = ['av-purple','av-amber','av-coral','av-green'];
+
+        if (!matches || matches.length === 0) {
+          matchesList.innerHTML = '<div style="font-size:13px;color:var(--text3);">No matches yet. Add more skills!</div>';
+          return;
+        }
+
+        matchesList.innerHTML = matches.slice(0, 3).map((m, i) => `
+          <div class="match-preview" onclick="window.location.href='match.html'">
+            <div class="avatar ${colors[i % 4]}">${m.avatar_initials || '?'}</div>
+            <div class="match-preview-info">
+              <div class="match-preview-name">${m.name}</div>
+              <div class="match-preview-skills">
+                Teaches ${(m.teachSkills || []).slice(0, 2).join(', ') || '—'}
+                ${(m.learnSkills || []).length > 0 ? ' · Wants ' + m.learnSkills.slice(0, 1).join(', ') : ''}
+              </div>
+            </div>
+            <span class="badge badge-teach">${m.matchScore}%</span>
+          </div>`).join('');
+      } catch(e) {
+        console.error('Matches load error:', e);
+      }
     }
+
+    loadProfile();
   </script>
 
+<script src="api.js"></script>
 </body>
 </html>
