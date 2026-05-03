@@ -494,7 +494,8 @@
 
     // ── LOAD SKILLS ──────────────────────────────────────────────────────────
     async function loadSkills() {
-      if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; return; }
+      const token = localStorage.getItem('ss_token');
+      if (!token) { window.location.href = 'login.html'; return; }
       initNav();
       try {
         const profile = await API.users.profile();
