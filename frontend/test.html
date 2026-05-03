@@ -494,7 +494,7 @@
 
     // ── LOAD SKILLS ──────────────────────────────────────────────────────────
     async function loadSkills() {
-      requireAuth();
+      if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; return; }
       initNav();
       try {
         const profile = await API.users.profile();
