@@ -13,9 +13,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve frontend static files (the HTML/CSS/JS pages)
-app.use(express.static(path.join(__dirname, '../frontend')));
-
 // ─── API ROUTES ───────────────────────────────────────────────────────────────
 app.use('/api/auth',     require('./routes/auth'));
 app.use('/api/users',    require('./routes/users'));
@@ -32,6 +29,9 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Serve frontend static files (the HTML/CSS/JS pages)
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // ─── CATCH-ALL — serve frontend for any non-API route ────────────────────────
 app.get('*', (req, res) => {
