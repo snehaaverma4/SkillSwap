@@ -285,8 +285,7 @@
 
           <div class="teacher-skills-section">
             <div class="skills-label">Teaches</div>
-            <div class="skill-tags-row">${t.teaches.map(s=>`<span class="badge badge-teach">${s}</span>`).join('')}</div>
-          </div>
+<div class="skill-tags-row">${t.wants.map(s=>`<span class="badge badge-learn">${s}</span>`).join('')}</div>          </div>
 
           <div class="teacher-skills-section">
             <div class="skills-label">Wants to learn</div>
@@ -318,8 +317,8 @@ async function filterCards() {
         initials: u.avatar_initials || u.name.split(' ').map(w=>w[0]).join('').slice(0,2),
         av: ['av-green','av-purple','av-amber','av-coral'][i%4],
         role: u.role,
-        teaches: u.teachSkills || [],
-        wants: u.learnSkills || [],
+        teaches: (u.teachSkills || []).map(s => typeof s === 'string' ? s : s.name),
+wants: (u.learnSkills || []).map(s => typeof s === 'string' ? s : s.name),
         rating: u.avg_rating || 'N/A',
         sessions: u.sessions_completed || 0,
         category: currentFilter
