@@ -561,24 +561,35 @@
       }
     }
 
-    function submitForm() {
-      const agree = document.getElementById('agreeTerms').checked;
-      if (!agree) { alert('Please agree to the terms to continue.'); return; }
+    async function submitForm() {
+  const agree = document.getElementById('agreeTerms').checked;
+  if (!agree) { alert('Please agree to the terms to continue.'); return; }
 
-      // Save to localStorage for demo
-      const name = document.getElementById('fullname').value || 'Sneha N.';
-      localStorage.setItem('ss_user', JSON.stringify({
-        name: name,
-        email: document.getElementById('email').value,
-        teach: teachSkills,
-        learn: learnSkills,
-        points: 50,
-        role: document.getElementById('role').value || 'Student'
-      }));
+  const btn = document.querySelector('#step3 .btn-next');
+  btn.textContent = 'Creating account...';
+  btn.disabled = true;
 
-      document.getElementById('formArea').style.display = 'none';
-      document.getElementById('successView').style.display = 'block';
-    }
+  try {
+    const data = await API.auth.register({
+      name:        document.getElementById('fullname').value,
+      email:       document.getElementById('email').value,
+      password:    document.getElementById('password').value,
+      role:        document.getElementById('role').value || 'Student',
+      teachSkills: teachSkillIds,
+      learnSkills: learnSkillIds,
+    });
+
+    Auth.setToken(data.token);
+    Auth.setUser(data.user);
+
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('successView').style.display = 'block';
+  } catch (err) {
+    alert(err.message || 'Registration failed. Please try again.');
+    btn.textContent = 'Create account →';
+    btn.disabled = false;
+  }
+}
   </script>
 
 </body>
