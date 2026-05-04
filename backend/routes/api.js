@@ -1,7 +1,7 @@
 // SkillSwap API Client
 // All frontend pages import this to talk to the backend
 
-const API_BASE = '/api'; // works both locally and on Railway after deployment
+const API_BASE = window.location.origin + '/api'; // works both locally and on Railway after deployment
 
 // ─── TOKEN HELPERS ────────────────────────────────────────────────────────────
 const Auth = {
