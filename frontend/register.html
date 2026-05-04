@@ -467,28 +467,41 @@
     </div>
   </div>
 
+<script src="api.js"></script>
   <script>
     let teachSkills = [];
     let learnSkills = [];
+    let teachSkillIds = []; 
+    let learnSkillIds = [];  
     let currentStep = 1;
+
+    const skillNameToId = {
+  'Python':1,'Java':2,'C / C++':3,'JavaScript':4,'SQL':5,
+  'DSA':6,'Machine Learning':7,'UI / UX Design':8,'React':9,
+  'Data Analysis':10,'Mathematics':11,'English / Writing':12
+};
 
     function toggleSkill(el, type) {
       const skill = el.textContent.trim();
       if (type === 'teach') {
         if (teachSkills.includes(skill)) {
           teachSkills = teachSkills.filter(s => s !== skill);
+          teachSkillIds = teachSkillIds.filter(id => id !== skillNameToId[skill]);
           el.classList.remove('selected');
         } else {
           teachSkills.push(skill);
+          teachSkillIds.push(skillNameToId[skill]);
           el.classList.add('selected');
         }
         renderSelected('teachSelected', teachSkills);
       } else {
         if (learnSkills.includes(skill)) {
           learnSkills = learnSkills.filter(s => s !== skill);
+          learnSkillIds = learnSkillIds.filter(id => id !== skillNameToId[skill]);  // ← ADD
           el.classList.remove('selected');
         } else {
           learnSkills.push(skill);
+          learnSkillIds.push(skillNameToId[skill]);  // ← ADD
           el.classList.add('selected');
         }
         renderSelected('learnSelected', learnSkills);
