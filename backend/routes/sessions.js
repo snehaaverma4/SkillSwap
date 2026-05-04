@@ -66,8 +66,7 @@ router.post('/', auth, async (req, res) => {
       }
       await conn.query('UPDATE users SET points = points - 20 WHERE id = ?', [learnerId]);
       await conn.query(
-        'INSERT INTO points_history (user_id, change, reason, ref_id) VALUES (?, -20, "Session booking", ?)',
-        [learnerId, skillId]
+        'INSERT INTO points_history (user_id, points_change, reason, ref_id) VALUES (?, -20, "Session booking", ?)',        [learnerId, skillId]
       );
       pointsSpent = 20;
     }
@@ -135,8 +134,7 @@ router.patch('/:id/complete', auth, async (req, res) => {
 
     await conn.query('UPDATE users SET points = points + ? WHERE id = ?', [pointsAwarded, session.teacher_id]);
     await conn.query(
-      'INSERT INTO points_history (user_id, change, reason, ref_id) VALUES (?,?,?,?)',
-      [session.teacher_id, pointsAwarded,
+      'INSERT INTO points_history (user_id, points_change, reason, ref_id) VALUES (?,?,?,?)',      [session.teacher_id, pointsAwarded,
         rating === 5 ? 'Teaching session (+5★ bonus)' : 'Teaching session completed',
         session.id]
     );

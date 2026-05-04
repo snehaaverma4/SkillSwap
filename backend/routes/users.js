@@ -35,8 +35,7 @@ router.get('/me/profile', auth, async (req, res) => {
 
     // Points history (last 10)
     const [pointsHistory] = await db.query(
-      'SELECT change, reason, created_at FROM points_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 10',
-      [uid]
+'SELECT points_change, reason, created_at FROM points_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 10',      [uid]
     );
 
     // Session count

@@ -122,8 +122,7 @@ router.post('/test', auth, async (req, res) => {
     if (!entry.test_taken_at) {
       await db.query('UPDATE users SET points = points + 10 WHERE id = ?', [req.user.id]);
       await db.query(
-        'INSERT INTO points_history (user_id, change, reason) VALUES (?,10,"First skill test attempt")',
-        [req.user.id]
+'INSERT INTO points_history (user_id, points_change, reason) VALUES (?,10,"First skill test attempt")',        [req.user.id]
       );
     }
 
