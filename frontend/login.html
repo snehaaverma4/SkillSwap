@@ -191,17 +191,32 @@
     </div>
   </div>
 
+  <script src="api.js"></script>
   <script>
-    function doLogin() {
-      const email = document.getElementById('loginEmail').value;
-      const pass = document.getElementById('loginPassword').value;
-      if (!email || !pass) {
-        document.getElementById('loginError').style.display = 'block';
-        return;
-      }
-      // Demo: just redirect to profile
-      window.location.href = 'profile.html';
-    }
+    async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pass  = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  if (!email || !pass) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Please enter email and password.';
+    return;
+  }
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = 'Logging in...';
+  btn.disabled = true;
+  try {
+    const data = await API.auth.login({ email, password: pass });
+    Auth.setToken(data.token);
+    Auth.setUser(data.user);
+    window.location.href = 'profile.html';
+  } catch (err) {
+    errEl.style.display = 'block';
+    errEl.textContent = err.message || 'Invalid email or password.';
+    btn.textContent = 'Log in →';
+    btn.disabled = false;
+  }
+}
   </script>
 
 </body>

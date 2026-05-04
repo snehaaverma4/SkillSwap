@@ -252,6 +252,7 @@
     </div>
   </div>
 
+  <script src="api.js"></script>
   <script>
     const teachers = [
       { name: 'Rohan Kumar', initials: 'RK', av: 'av-purple', role: 'B.Tech CSE, 3rd yr', teaches: ['Java', 'DSA', 'C++'], wants: ['Python', 'ML basics'], rating: '4.8', sessions: 14, category: 'programming' },
@@ -303,16 +304,50 @@
       `;
     }
 
-    function filterCards() {
-      const query = document.getElementById('searchInput').value.toLowerCase();
-      const filtered = teachers.filter(t => {
-        const matchFilter = currentFilter === 'all' || t.category === currentFilter;
-        const matchSearch = !query ||
-          t.name.toLowerCase().includes(query) ||
-          t.teaches.some(s => s.toLowerCase().includes(query)) ||
-          t.wants.some(s => s.toLowerCase().includes(query));
-        return matchFilter && matchSearch;
-      });
+async function filterCards() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  let source = teachers; // fallback to mock
+  try {
+    const params = {};
+    if (query) params.skill = query;
+    if (currentFilter !== 'all') params.category = currentFilter;
+    const apiData = await API.users.browse(params);
+    if (apiData && apiData.length > 0) {
+      source = apiData.map((u,i) => ({
+        name: u.name,
+        initials: u.avatar_initials || u.name.split(' ').map(w=>w[0]).join('').slice(0,2),
+        av: ['av-green','av-purple','av-amber','av-coral'][i%4],
+        role: u.role,
+        teaches: u.teachSkills || [],
+        wants: u.learnSkills || [],
+        rating: u.avg_rating || 'N/A',
+        sessions: u.sessions_completed || 0,
+        category: currentFilter
+      }));
+    }
+  } catch(e) { /* use mock data */ }
+
+  const filtered = source.filter(t => {
+    const matchFilter = currentFilter === 'all' || t.category === currentFilter;
+    const matchSearch = !query ||
+      t.name.toLowerCase().includes(query) ||
+      t.teaches.some(s => s.toLowerCase().includes(query)) ||
+      t.wants.some(s => s.toLowerCase().includes(query));
+    return matchFilter && matchSearch;
+  });
+
+  const grid = document.getElementById('teacherGrid');
+  const noRes = document.getElementById('noResults');
+  document.getElementById('resultCount').textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    noRes.style.display = 'block';
+  } else {
+    noRes.style.display = 'none';
+    grid.innerHTML = filtered.map(renderTeacher).join('');
+  }
+}
 
       const grid = document.getElementById('teacherGrid');
       const noRes = document.getElementById('noResults');

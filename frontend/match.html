@@ -328,7 +328,7 @@
       <!-- OTHER MATCHES -->
       <div class="matches-section-title">Other matches</div>
 
-      <div class="match-list">
+      <div id="matchListContainer">
         <div class="match-row" onclick="window.location.href='match.html'">
           <div class="avatar av-amber">AM</div>
           <div>
@@ -381,36 +381,77 @@
     </div>
   </div>
 
+  <script src="api.js"></script>
   <script>
-    const user = JSON.parse(localStorage.getItem('ss_user') || '{"name":"Sneha Nair","teach":["Python","ML basics"],"learn":["Java","DSA"],"role":"Student"}');
-
-    const name = user.name.split(' ')[0];
+    async function loadMatchPage() {
+  if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; return; }
+  initNav();
+  try {
+    const profile = await API.users.profile();
+    const name = profile.name.split(' ')[0];
     document.getElementById('myName').textContent = 'You (' + name + ')';
-    document.getElementById('myRole').textContent = user.role || 'Student';
-    document.getElementById('myInitials').textContent = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('myRole').textContent = profile.role || 'Student';
+    document.getElementById('myInitials').textContent = profile.avatar_initials || 'ME';
 
-    const teach = user.teach || ['Python', 'ML basics'];
-    const learn = user.learn || ['Java', 'DSA'];
+    const teach = (profile.teachSkills||[]).filter(s=>s.is_verified);
+    const learn = profile.learnSkills||[];
+    document.getElementById('myTeach').innerHTML = teach.map(s=>`<span class="badge badge-teach">${s.name}</span>`).join('') || '<span style="font-size:12px;color:var(--text3)">No verified skills yet</span>';
+    document.getElementById('myLearn').innerHTML = learn.map(s=>`<span class="badge badge-learn">${s.name}</span>`).join('') || '<span style="font-size:12px;color:var(--text3)">No wishlist yet</span>';
 
-    document.getElementById('myTeach').innerHTML = teach.map(s=>`<span class="badge badge-teach">${s}</span>`).join('');
-    document.getElementById('myLearn').innerHTML = learn.map(s=>`<span class="badge badge-learn">${s}</span>`).join('');
-
-    function showPropose() {
-      const panel = document.getElementById('proposePanel');
-      panel.style.display = 'block';
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const matches = await API.matches.list();
+    const colors = ['av-purple','av-amber','av-coral','av-green'];
+    const list = document.getElementById('matchListContainer');
+    if (list) {
+      list.innerHTML = matches.slice(0).map((m,i)=>`
+        <div class="match-row">
+          <div class="avatar ${colors[i%4]}">${m.avatar_initials||'?'}</div>
+          <div>
+            <div class="match-row-name">${m.name}</div>
+            <div class="match-row-skills">Teaches ${(m.teachSkills||[]).slice(0,2).join(', ')} · Wants ${(m.learnSkills||[]).slice(0,1).join(', ')}</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="match-row-score">${m.matchScore}%</div>
+            <div class="match-score-lbl">match</div>
+          </div>
+          <button class="btn-msg" onclick="proposeMatch(${m.id},event)">Connect</button>
+        </div>`).join('') || '<div style="color:var(--text2);font-size:13px;">No matches yet. Add more skills!</div>';
     }
+  } catch(e) { console.error(e); }
+}
 
-    function selectSwap(el) {
-      document.querySelectorAll('.swap-opt').forEach(o => o.classList.remove('chosen'));
-      el.classList.add('chosen');
-    }
+async function proposeMatch(userId, e) {
+  e.stopPropagation();
+  const btn = e.target;
+  btn.textContent = 'Sending...';
+  try {
+    await API.matches.propose({ targetUserId: userId, swapType: 'direct' });
+    showToast('Swap request sent!');
+    btn.textContent = 'Sent ✓';
+    btn.disabled = true;
+  } catch(err) {
+    showToast(err.message, 'error');
+    btn.textContent = 'Connect';
+  }
+}
 
-    function confirmSwap() {
-      const chosen = document.querySelector('.swap-opt.chosen');
-      if (!chosen) { alert('Please select a swap type first.'); return; }
-      document.getElementById('swapConfirmed').style.display = 'block';
-    }
+function showPropose() {
+  const panel = document.getElementById('proposePanel');
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+function selectSwap(el) {
+  document.querySelectorAll('.swap-opt').forEach(o => o.classList.remove('chosen'));
+  el.classList.add('chosen');
+}
+
+function confirmSwap() {
+  const chosen = document.querySelector('.swap-opt.chosen');
+  if (!chosen) { alert('Please select a swap type first.'); return; }
+  document.getElementById('swapConfirmed').style.display = 'block';
+}
+
+loadMatchPage();
   </script>
 
 </body>
