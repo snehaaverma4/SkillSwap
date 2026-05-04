@@ -60,7 +60,7 @@ router.post('/register', async (req, res) => {
 
     // Record signup bonus in points history
     await conn.query(
-      'INSERT INTO points_history (user_id, change, reason) VALUES (?,50,"Signup bonus")',
+      'INSERT INTO points_history (user_id, points_change, reason) VALUES (?,50,"Signup bonus")',
       [userId]
     );
 
